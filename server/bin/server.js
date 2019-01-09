@@ -8,6 +8,9 @@ const morgan = require('morgan');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 
+const strings = require('../helpers/strings');
+const app_name = require('../../package.json').name;
+
 let app = express();
 
 mongoose.set('useCreateIndex', true);
@@ -17,7 +20,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static(path.join(__dirname, '../../public')));
 app.use(morgan('common'));
 
-app.all('/api/*', function(req,res, next){
+app.all('*/api/*', function(req,res, next){
     //Check if connected to the db
     console.log('Mongoose connection readyState:', mongoose.connection.readyState);
     if(mongoose.connection.readyState === 0){
@@ -27,7 +30,7 @@ app.all('/api/*', function(req,res, next){
 	next();
 });
 //Laod routes
-require('../app/app.router')();
+require('../app/app.router')(app);
 
 //Register generic Error Handler
 app.use(function(err,req,res,next){
@@ -37,6 +40,11 @@ app.use(function(err,req,res,next){
 		message: err.message
 	});
 });
+
+const options = {
+	reconnectTries: Number.MAX_VALUE,
+	useNewUrlParser: true  
+};
 
 try{
 	if (process.env.NODE_ENV === 'TEST') {
