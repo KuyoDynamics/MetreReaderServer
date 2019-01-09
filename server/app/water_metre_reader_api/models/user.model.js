@@ -95,20 +95,22 @@ UserSchema.pre('save', function(next) {
     })
 });
 //Add Password Verification Middleware
-UserSchema.methods.comparePassword =  function(candidatePassword, callback){
-    bcrypt.compare(candidatePassword, this.password, function(err, isMatch){
-        if(err){
-            return callback(err);
-        }
-        callback(null, isMatch);
-    });
+UserSchema.methods.comparePassword =  function(candidatePassword, userPassword){
+    return new Promise(function(resolve, reject){
+        bcrypt.compare(candidatePassword, userPassword, function(err, isMatch){
+            if(err){
+                return reject(err);
+            }
+            return resolve(isMatch);
+        });
+    });    
 };
 
 //increment login attempts
 UserSchema.methods.incLoginAttempts = function(callback){
     //if we have a previous lock that has expired, restart at 1
     if(this.lock_until && this.lock_until < Date.now()){
-        return this.update({
+        return this.updateOne({
             $set: { login_attempts: 1},
             $unset: { lock_until: 1}
         }, callback);
@@ -119,10 +121,10 @@ UserSchema.methods.incLoginAttempts = function(callback){
     if(this.login_attempts + 1 >= MAX_LOGIN_ATTEMPTS && !this.isLocked){
         updates.$set = { lock_until: Date.now() + LOCK_TIME};
     }
-    return this.update(updates, callback);
+    return this.updateOne(updates, callback);
 };
-//expose enum on the model and provide an internal convenience reference
-let reasons = UserSchema.statics.failedLogin = {
+//expose enum on the model
+UserSchema.statics.failedLogin = {
     NOT_FOUND: 0,
     PASSWORD_INCORRECT: 1,
     MAX_ATTEMPTS: 2
@@ -132,62 +134,6 @@ UserSchema.virtual('isLocked').get(function(){
     //check for a future lockUntil timestamp
     return !!(this.lock_until && this.lock_until > Date.now());
 });
-
-UserSchema.static.getAuthenticated = function(username, password, callback){
-    this.findOne({username: username}, function(err, user){
-        if(err){
-            return callback(err);
-        }
-
-        //make sure user exists
-        if(!user){
-            return callback(null, null, reasons.NOT_FOUND);
-        }
-        //check if the account is currently locked
-        if(user.isLocked){
-            //just increment login attempts if account is already locked
-            return user.incLoginAttempts(function(err){
-                if(err) {
-                    return callback(err);
-                }
-                return callback(null, null, reasons.MAX_ATTEMPTS);
-            });
-        }
-
-        //test for a matching password
-        user.comparePassword(password, function(err, isMatch){
-            if(err){
-                return callback(err);
-            }
-            //check if the password was a match
-            if(isMatch){
-                //if there is no lock or failed attempts, just return the user
-                if(!user.login_attempts && !user.lock_until){
-                    return callback(null, user);
-                }
-                //reset attempts and lock info
-                let updates = {
-                    $set: { login_attempts: 0},
-                    $unset: { lock_until: 1}
-                };
-                return user.update(updates, function(err){
-                    if(err){
-                        return callback(err);
-                    }
-                    return callback(null, user);
-                });
-            }
-            //password is incorrect, so increment login attempts before responding
-            user.incLoginAttempts(function(err) {
-                if(err){
-                    return callback(err);
-                }
-                return callback(null, null, reasons.PASSWORD_INCORRECT);
-            });
-            
-        });
-    });
-}
 
 let User = mongoose.model('User', UserSchema);
 
