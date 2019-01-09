@@ -1,0 +1,41 @@
+{
+  "name": "metrereaderserver",
+  "version": "1.0.0",
+  "description": "Metre Reader API for IoT and Android Things",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "cross-env NODE_ENV=TEST nodemon server/bin/server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BantuLab/MetreReaderServer.git"
+  },
+  "keywords": [
+    "iot",
+    "water",
+    "waterreader",
+    "nodejs",
+    "api",
+    "metrereader"
+  ],
+  "author": "Chaiwa Berian",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/BantuLab/MetreReaderServer/issues"
+  },
+  "homepage": "https://github.com/BantuLab/MetreReaderServer#readme",
+  "dependencies": {
+    "body-parser": "^1.18.3",
+    "chalk": "^2.4.2",
+    "cors": "^2.8.5",
+    "dotenv": "^6.2.0",
+    "express": "^4.16.4",
+    "mongoose": "^5.4.2",
+    "morgan": "^1.9.1",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "cross-env": "^5.2.0"
+  }
+}
