@@ -3,6 +3,7 @@
         "connection_error": "Connection Error occured:",
         "connection_closed_sigint": "Database Server connection closed through App termination!",
         "connection_closed_db_server": "Disconnected from the database server",
+        "connection_closed": "Connection closed",
         "connection_failed_max_retries": "Reached Max. Retries! Failed to reconnect to datbase",
         "error_generic": "Error Occured:"
     },

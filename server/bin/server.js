@@ -20,7 +20,7 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static(path.join(__dirname, '../../public')));
 app.use(morgan('common'));
 
-app.all('*/api/*', function(req,res, next){
+app.all('*/api*', function(req,res, next){
     //Check if connected to the db
     console.log('Mongoose connection readyState:', mongoose.connection.readyState);
     if(mongoose.connection.readyState === 0){
@@ -42,8 +42,10 @@ app.use(function(err,req,res,next){
 });
 
 const options = {
-	reconnectTries: Number.MAX_VALUE,
-	useNewUrlParser: true  
+	autoReconnect: true,
+	useNewUrlParser: true,
+	bufferMaxEntries: 0 ,
+	bufferCommands: false 
 };
 
 try{
@@ -51,27 +53,31 @@ try{
 		var configFile = path.join(__dirname, '../config/.env');
 		dotenv.load({ path: configFile });
 	}
-	mongoose.connect(process.env.MONGODB_URL, options);
 } catch(error){
 	console.log(strings.error_messages.connection_error, error.message);
 }
 
 var db_connection = mongoose.connection;
 
+db_connection.setMaxListeners(0);
+
 process.on('SIGINT', function(){
 	db_connection.close(function(){
 		console.log(strings.error_messages.connection_closed_sigint, chalk.red('X'));
+		db_connection.removeAllListeners();
 		process.exit(0);
 	});
 });
 
 db_connection.on('error', (error) =>{
 	console.error('[' + app_name + ']', strings.error_messages.connection_error + error.message, chalk.red('X'));
+	mongoose.disconnect();
 });
 
 db_connection.on('disconnected', function(){
 	console.log('[' + app_name + ']', strings.error_messages.connection_closed_db_server,
 		chalk.red('X'));
+	// mongoose.connect(process.env.MONGODB_URL, options);
 });
 
 db_connection.on('connected', function(){
@@ -93,11 +99,23 @@ db_connection.on('disconnecting', function(){
 		chalk.red('X'));
 });
 
+db_connection.on('close', function(){
+	console.log('[' + app_name + ']', strings.error_messages.connection_closed);
+	// db_connection.removeAllListeners();
+});
+
+db_connection.on('timeout', function(){
+	console.log('Timeout...');
+})
+mongoose.connect(process.env.MONGODB_URL, options);
+
+
 let PORT = process.env.PORT || 3000;
 
 let server = app.listen(PORT, function(){
 	console.log('[' + app_name + ']', strings.info_messages.connected_to_silc_server + strings.info_messages.listening_to_silc_server + PORT + '!', chalk.green('✓'));
 });
+
 
 module.exports = server;
 

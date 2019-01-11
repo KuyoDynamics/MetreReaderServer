@@ -124,7 +124,7 @@ UserSchema.methods.incLoginAttempts = function(callback){
     return this.updateOne(updates, callback);
 };
 //expose enum on the model
-UserSchema.statics.failedLogin = {
+UserSchema.statics.failedLoginReasons = {
     NOT_FOUND: 0,
     PASSWORD_INCORRECT: 1,
     MAX_ATTEMPTS: 2
