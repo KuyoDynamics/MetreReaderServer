@@ -506,10 +506,11 @@ let User = require('../models/user.model');
 //POST /api/login?username="username"&password="password"
 async function login(req, res, next) {
 
-    let {username, password} = (Object.keys(req.query).length === 0) ? req.body : req.query; 
-    let reasons =  User.failedLoginReasons;
-
     try {
+        
+        let {username, password} = (Object.keys(req.query).length === 0) ? req.body : req.query; 
+        let reasons =  User.failedLoginReasons;
+
         //fetch user and test for password equality
         let user = await User.findOne({'username': username});
         

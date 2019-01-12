@@ -2,4 +2,8 @@ let controller = require('../controllers/auth.controller');
 
 let router = require('express').Router();
 
-router.get()
+router.route('/')
+    .get(controller.getNewToken);
+
+
+module.exports = router;

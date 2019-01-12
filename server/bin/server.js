@@ -7,6 +7,8 @@ const path = require('path');
 const morgan = require('morgan');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+let skipPathMatcher = require('../helpers/authentication/skip_request_path_matcher');
+
 
 const strings = require('../helpers/strings');
 const app_name = require('../../package.json').name;
@@ -19,27 +21,29 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static(path.join(__dirname, '../../public')));
 app.use(morgan('common'));
+//Register generic Error Handler
 
 app.all('*/api*', function(req,res, next){
     //Check if connected to the db
     console.log('Mongoose connection readyState:', mongoose.connection.readyState);
     if(mongoose.connection.readyState === 0){
-		res.status(503).send('Database connection not available');
+		res.status(503).send('Database connection not available').end();
+	}
+	let skip = skipPathMatcher(req.path);
+	console.log('The req path: ', req.path);
+	console.log('skipPathMatcher(req.path): ', skip);
+
+	//skip configured routes
+	if(skip === true){
+		console.log('This request path will be skipped: ', req.path);
 	}
   
 	next();
 });
+
+
 //Laod routes
 require('../app/app.router')(app);
-
-//Register generic Error Handler
-app.use(function(err,req,res,next){
-	console.log('[silcserver] Error:', err.message);
-	res.send({
-		status: err.status,
-		message: err.message
-	});
-});
 
 const options = {
 	autoReconnect: true,
@@ -112,9 +116,20 @@ mongoose.connect(process.env.MONGODB_URL, options);
 
 let PORT = process.env.PORT || 3000;
 
+app.use(function(err,req,res,next){
+	console.log('[metrereaderserver] Error:', err.message);
+
+	res.json({
+		status: err.status === null ? 404 : err.status,
+		message: err.message === null ? 'Not found' : err.message
+	}).send().end();
+	console.log('Called global error handler');
+});
+
 let server = app.listen(PORT, function(){
 	console.log('[' + app_name + ']', strings.info_messages.connected_to_silc_server + strings.info_messages.listening_to_silc_server + PORT + '!', chalk.green('✓'));
 });
+
 
 
 module.exports = server;
