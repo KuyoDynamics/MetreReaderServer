@@ -6,9 +6,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const morgan = require('morgan');
 const cors = require('cors');
-const jwt = require('jsonwebtoken');
-let skipPathMatcher = require('../helpers/authentication/skip_request_path_matcher');
-
+let {require_authentication} = require('../helpers/authentication/authentication_manager');
 
 const strings = require('../helpers/strings');
 const app_name = require('../../package.json').name;
@@ -21,26 +19,26 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static(path.join(__dirname, '../../public')));
 app.use(morgan('common'));
-//Register generic Error Handler
 
-app.all('*/api*', function(req,res, next){
-    //Check if connected to the db
-    console.log('Mongoose connection readyState:', mongoose.connection.readyState);
-    if(mongoose.connection.readyState === 0){
-		res.status(503).send('Database connection not available').end();
-	}
-	let skip = skipPathMatcher(req.path);
-	console.log('The req path: ', req.path);
-	console.log('skipPathMatcher(req.path): ', skip);
+app.all('*/api*', require_authentication);
 
-	//skip configured routes
-	if(skip === true){
-		console.log('This request path will be skipped: ', req.path);
-	}
+// function(req,res, next){
+//     //Check if connected to the db
+//     console.log('Mongoose connection readyState:', mongoose.connection.readyState);
+//     if(mongoose.connection.readyState === 0){
+// 		res.status(503).send('Database connection not available').end();
+// 	}
+// 	let skip = skipPathMatcher(req.path);
+// 	console.log('The req path: ', req.path);
+// 	console.log('skipPathMatcher(req.path): ', skip);
+
+// 	//skip configured routes
+// 	if(skip === true){
+// 		console.log('This request path will be skipped: ', req.path);
+// 	}
   
-	next();
-});
-
+// 	next();
+// });
 
 //Laod routes
 require('../app/app.router')(app);
@@ -110,11 +108,9 @@ db_connection.on('close', function(){
 
 db_connection.on('timeout', function(){
 	console.log('Timeout...');
-})
+});
+
 mongoose.connect(process.env.MONGODB_URL, options);
-
-
-let PORT = process.env.PORT || 3000;
 
 app.use(function(err,req,res,next){
 	console.log('[metrereaderserver] Error:', err.message);
@@ -126,12 +122,10 @@ app.use(function(err,req,res,next){
 	console.log('Called global error handler');
 });
 
+let PORT = process.env.PORT || 3000;
+
 let server = app.listen(PORT, function(){
 	console.log('[' + app_name + ']', strings.info_messages.connected_to_silc_server + strings.info_messages.listening_to_silc_server + PORT + '!', chalk.green('✓'));
 });
 
-
-
 module.exports = server;
-
-

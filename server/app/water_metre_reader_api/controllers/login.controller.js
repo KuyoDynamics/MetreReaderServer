@@ -505,13 +505,11 @@ let User = require('../models/user.model');
 
 //POST /api/login?username="username"&password="password"
 async function login(req, res, next) {
-
     try {
         
         let {username, password} = (Object.keys(req.query).length === 0) ? req.body : req.query; 
         let reasons =  User.failedLoginReasons;
 
-        //fetch user and test for password equality
         let user = await User.findOne({'username': username});
         
         if(user){
@@ -540,10 +538,8 @@ async function login(req, res, next) {
             if(isMatch){
                 //if there is no lock or failed attempts, just return the user
                 if(!user.login_attempts && !user.lock_until){
-                    res.status(200);
-                    res.send(user);
-                    return;
-                    // return next(null, user);
+                    req.user = user; //send user for jwt signing/jwt_login_token_provider
+                    return next();
                 }
                 //reset attempts and lock info
                 let updates = {
@@ -552,10 +548,8 @@ async function login(req, res, next) {
                 };
 
                 let updated_user = await User.findOneAndUpdate({'_id': user._id}, updates,{"new": true});
-                res.status(200);
-                res.send(updated_user);
-                // return next(null, updated_user);
-                return;
+                req.user = updated_user; //send user for jwt signing
+                return next();
             }
         }
         else {
