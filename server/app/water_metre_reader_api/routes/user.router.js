@@ -1,9 +1,11 @@
 let router = require('express').Router();
 let controller = require('../controllers/user.controller');
+let verify_auth_scope = require('../../../helpers/authentication/jwt_auth_scope_verifier');
+
 console.log("Routed  to : /:id");
 router.route('/:id')
-    .get(controller.getUser)
+    .get(verify_auth_scope(['read:users']), controller.getUser)
 router.route('/')
-    .post(controller.createUser)
+    .post(verify_auth_scope(['create:users']), controller.createUser)
 
 module.exports = router;    

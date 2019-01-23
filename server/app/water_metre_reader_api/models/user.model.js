@@ -20,9 +20,9 @@ const MAX_LOGIN_ATTEMPTS = 5;
 const LOCK_TIME = 2*60*60*1000;
 
 let Schema = mongoose.Schema;
-let UserTypeOptions = ['field_agent','web_user'];
+let UserTypeOptions = ['field_agent','system_admin','report_viewer'];
 let SexTypeOptions = ['male','female','unknown'];
-let UserRoleOptions = ['data_collector','read_only','billing_admin','app_manager','app_editor']
+let UserPermissions = ['read:users','create:users','update:users','delete:users','read:metre_accounts'];
 
 let UserSchema = new Schema({
     username: {
@@ -57,10 +57,10 @@ let UserSchema = new Schema({
         type: String,
         enum: UserTypeOptions
     },
-    user_role: {
+    user_permissions: [{
         type: String,
-        enum: UserRoleOptions
-    },
+        enum: UserPermissions
+    }],
     login_attempts: {
         type: Number,
         required: true,

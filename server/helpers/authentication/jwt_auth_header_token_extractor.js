@@ -6,15 +6,12 @@
 
  function extract_token(req) {
     const bearerHeader = req.headers['authorization'];
-    let token = null;
-    console.log('Bearer Header: ', bearerHeader);
-    if(bearerHeader){
-        //split at the space
-        const bearer = bearerHeader.split(' ');
-        //Get token from the bearer
-        token = bearer[1];
+    if(bearerHeader && bearerHeader.split(' ')[0] === 'Bearer'){
+        return bearerHeader.split(' ')[1];
+    } else if(req.query && req.query.token) {
+        return req.query.token
     }
-    return token;
+    return null;
  }
  module.exports = {
      extract_token

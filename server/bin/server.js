@@ -20,6 +20,11 @@ app.use(bodyParser.urlencoded({extended: true}));
 app.use(express.static(path.join(__dirname, '../../public')));
 app.use(morgan('common'));
 
+//Set req.user to null for each server request
+app.use('*', function(req, res, next){
+	req.user = null;
+	next();
+});
 app.all('*/api*', require_authentication);
 
 // function(req,res, next){

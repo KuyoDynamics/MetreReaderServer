@@ -1,6 +1,7 @@
+
 module.exports = function(app){
     //Water Metre Reader API
-    app.use('/water/api/users', require('./water_metre_reader_api/routes/user.router'));
+    app.use('/water/api/users',require('./water_metre_reader_api/routes/user.router'));
     //get new token
     app.use('/water/api/auth/login', require('./water_metre_reader_api/routes/login.router')); 
     //Used to renew token: verify token, check scope, return new token

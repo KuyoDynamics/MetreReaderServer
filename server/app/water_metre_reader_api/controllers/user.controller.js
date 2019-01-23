@@ -38,7 +38,7 @@ async function createUser(req, res, next){
         sex: req.body.sex,
         date_of_birth: req.body.date_of_birth,
         user_type: req.body.user_type,
-        user_role: req.body.user_role
+        user_permissions: req.body.user_permissions
     });
 
     const session = await User.startSession();
