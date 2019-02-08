@@ -272,63 +272,11 @@ Cache-Control: no-cache
 * Please ensure that chain.doFilter(request, response) is invoked upon successful authentication.
 * You want processing of the request to advance to the next filter(or middleware), because the very last one filter
 FilterSecurityInterceptor#doFilter is responsible to actually invoke method in your controller that is handling requested API resource
-public class JwtTokenAuthenticationProcessingFilter extends AbstractAuthenticationProcessingFilter {  
-    private final AuthenticationFailureHandler failureHandler;
-    private final TokenExtractor tokenExtractor;
 
-    @Autowired
-    public JwtTokenAuthenticationProcessingFilter(AuthenticationFailureHandler failureHandler, 
-            TokenExtractor tokenExtractor, RequestMatcher matcher) {
-        super(matcher);
-        this.failureHandler = failureHandler;
-        this.tokenExtractor = tokenExtractor;
-    }
-
-    @Override
-    public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
-            throws AuthenticationException, IOException, ServletException {
-        String tokenPayload = request.getHeader(WebSecurityConfig.JWT_TOKEN_HEADER_PARAM);
-        RawAccessJwtToken token = new RawAccessJwtToken(tokenExtractor.extract(tokenPayload));
-        return getAuthenticationManager().authenticate(new JwtAuthenticationToken(token));
-    }
-
-    @Override
-    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain,
-            Authentication authResult) throws IOException, ServletException {
-        SecurityContext context = SecurityContextHolder.createEmptyContext();
-        context.setAuthentication(authResult);
-        SecurityContextHolder.setContext(context);
-        chain.doFilter(request, response);
-    }
-
-    @Override
-    protected void unsuccessfulAuthentication(HttpServletRequest request, HttpServletResponse response,
-            AuthenticationException failed) throws IOException, ServletException {
-        SecurityContextHolder.clearContext();
-        failureHandler.onAuthenticationFailure(request, response, failed);
-    }
-}
 * JwtHeaderTokenExtractor
 *===========================
 * Is used to extract Authorization token from header.
 * You can extend TokenExtractor interface and provide your custom implementation that will extract token from URL
-@Component
-public class JwtHeaderTokenExtractor implements TokenExtractor {  
-    public static String HEADER_PREFIX = "Bearer ";
-
-    @Override
-    public String extract(String header) {
-        if (StringUtils.isBlank(header)) {
-            throw new AuthenticationServiceException("Authorization header cannot be blank!");
-        }
-
-        if (header.length() < HEADER_PREFIX.length()) {
-            throw new AuthenticationServiceException("Invalid authorization header size.");
-        }
-
-        return header.substring(HEADER_PREFIX.length(), header.length());
-    }
-}
 
 * JwtAuthenticationProvider
 * ====================================
@@ -336,60 +284,12 @@ public class JwtHeaderTokenExtractor implements TokenExtractor {
 * 1. Verify the access token's signature
 * 2. Extract identity and authorizatioon claims from the Access Token and use them to create UserContext
 * 3. If Access token is malformed, expired or simply if token is not signed with the appropriate signing key, Authentication exception will be thrown.
-@Component
-public class JwtAuthenticationProvider implements AuthenticationProvider {  
-    private final JwtSettings jwtSettings;
 
-    @Autowired
-    public JwtAuthenticationProvider(JwtSettings jwtSettings) {
-        this.jwtSettings = jwtSettings;
-    }
-
-    @Override
-    public Authentication authenticate(Authentication authentication) throws AuthenticationException {
-        RawAccessJwtToken rawAccessToken = (RawAccessJwtToken) authentication.getCredentials();
-
-        Jws<Claims> jwsClaims = rawAccessToken.parseClaims(jwtSettings.getTokenSigningKey());
-        String subject = jwsClaims.getBody().getSubject();
-        List<String> scopes = jwsClaims.getBody().get("scopes", List.class);
-        List<GrantedAuthority> authorities = scopes.stream()
-                .map(authority -> new SimpleGrantedAuthority(authority))
-                .collect(Collectors.toList());
-
-        UserContext context = UserContext.create(subject, authorities);
-
-        return new JwtAuthenticationToken(context, context.getAuthorities());
-    }
-
-    @Override
-    public boolean supports(Class<?> authentication) {
-        return (JwtAuthenticationToken.class.isAssignableFrom(authentication));
-    }
-}
 * SkipPathRequestMatcher
 * ======================================
 * JwtTokenAuthenticationProcessingFilter is configured to skip the following endpoints:
 * /api/auth/login and /api/auth/token
 * This is achieved with SkipPathRequestMatcher implementation of RequestMatcher
-public class SkipPathRequestMatcher implements RequestMatcher {  
-    private OrRequestMatcher matchers;
-    private RequestMatcher processingMatcher;
-
-    public SkipPathRequestMatcher(List<String> pathsToSkip, String processingPath) {
-        Assert.notNull(pathsToSkip);
-        List<RequestMatcher> m = pathsToSkip.stream().map(path -> new AntPathRequestMatcher(path)).collect(Collectors.toList());
-        matchers = new OrRequestMatcher(m);
-        processingMatcher = new AntPathRequestMatcher(processingPath);
-    }
-
-    @Override
-    public boolean matches(HttpServletRequest request) {
-        if (matchers.matches(request)) {
-            return false;
-        }
-        return processingMatcher.matches(request) ? true : false;
-    }
-}
 
 * WebSecurityConfig
 * =======================
@@ -401,82 +301,7 @@ AuthenticationManager
 BCryptPasswordEncoder
 Also, inside WebSecurityConfig#configure(HttpSecurity http) method we'll configure patterns to define protected/unprotected API endpoints. Please note that we have disabled CSRF protection because we are not using Cookies.
 
-@Configuration
-@EnableWebSecurity
-public class WebSecurityConfig extends WebSecurityConfigurerAdapter {  
-    public static final String JWT_TOKEN_HEADER_PARAM = "X-Authorization";
-    public static final String FORM_BASED_LOGIN_ENTRY_POINT = "/api/auth/login";
-    public static final String TOKEN_BASED_AUTH_ENTRY_POINT = "/api/**";
-    public static final String TOKEN_REFRESH_ENTRY_POINT = "/api/auth/token";
 
-    @Autowired private RestAuthenticationEntryPoint authenticationEntryPoint;
-    @Autowired private AuthenticationSuccessHandler successHandler;
-    @Autowired private AuthenticationFailureHandler failureHandler;
-    @Autowired private AjaxAuthenticationProvider ajaxAuthenticationProvider;
-    @Autowired private JwtAuthenticationProvider jwtAuthenticationProvider;
-
-    @Autowired private TokenExtractor tokenExtractor;
-
-    @Autowired private AuthenticationManager authenticationManager;
-
-    @Autowired private ObjectMapper objectMapper;
-
-    protected AjaxLoginProcessingFilter buildAjaxLoginProcessingFilter() throws Exception {
-        AjaxLoginProcessingFilter filter = new AjaxLoginProcessingFilter(FORM_BASED_LOGIN_ENTRY_POINT, successHandler, failureHandler, objectMapper);
-        filter.setAuthenticationManager(this.authenticationManager);
-        return filter;
-    }
-
-    protected JwtTokenAuthenticationProcessingFilter buildJwtTokenAuthenticationProcessingFilter() throws Exception {
-        List<String> pathsToSkip = Arrays.asList(TOKEN_REFRESH_ENTRY_POINT, FORM_BASED_LOGIN_ENTRY_POINT);
-        SkipPathRequestMatcher matcher = new SkipPathRequestMatcher(pathsToSkip, TOKEN_BASED_AUTH_ENTRY_POINT);
-        JwtTokenAuthenticationProcessingFilter filter 
-            = new JwtTokenAuthenticationProcessingFilter(failureHandler, tokenExtractor, matcher);
-        filter.setAuthenticationManager(this.authenticationManager);
-        return filter;
-    }
-
-    @Bean
-    @Override
-    public AuthenticationManager authenticationManagerBean() throws Exception {
-        return super.authenticationManagerBean();
-    }
-
-    @Override
-    protected void configure(AuthenticationManagerBuilder auth) {
-        auth.authenticationProvider(ajaxAuthenticationProvider);
-        auth.authenticationProvider(jwtAuthenticationProvider);
-    }
-
-    @Bean
-    protected BCryptPasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
-    }
-
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
-        http
-        .csrf().disable() // We don't need CSRF for JWT based authentication
-        .exceptionHandling()
-        .authenticationEntryPoint(this.authenticationEntryPoint)
-
-        .and()
-            .sessionManagement()
-            .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-
-        .and()
-            .authorizeRequests()
-                .antMatchers(FORM_BASED_LOGIN_ENTRY_POINT).permitAll() // Login end-point
-                .antMatchers(TOKEN_REFRESH_ENTRY_POINT).permitAll() // Token refresh end-point
-                .antMatchers("/console").permitAll() // H2 Console Dash-board - only for testing
-        .and()
-            .authorizeRequests()
-                .antMatchers(TOKEN_BASED_AUTH_ENTRY_POINT).authenticated() // Protected API End-points
-        .and()
-            .addFilterBefore(buildAjaxLoginProcessingFilter(), UsernamePasswordAuthenticationFilter.class)
-            .addFilterBefore(buildJwtTokenAuthenticationProcessingFilter(), UsernamePasswordAuthenticationFilter.class);
-    }
-}
 PasswordEncoderConfig
 BCrypt encoder that is in AjaxAuthenticationProvider.
 
@@ -490,15 +315,6 @@ public class PasswordEncoderConfig {
 BloomFilterTokenVerifier
 This is dummy class. You should ideally implement your own TokenVerifier to check for revoked tokens.
 
-@Component
-public class BloomFilterTokenVerifier implements TokenVerifier {  
-    @Override
-    public boolean verify(String jti) {
-        return true;
-    }
-}
-
-
  */
 /* #endregion */
 let User = require('../models/user.model');
@@ -507,6 +323,12 @@ let User = require('../models/user.model');
 async function login(req, res, next) {
     try {
         
+        //You can also check if the request contains authorization header
+        //Refactor this username&password extraction logic into its separate method
+        //Method should return decoded password&username if encoded otherwise check
+        //if placed in params query or body.
+        //If not available in any of those places, just reject the request with
+        //invalid username or password error
         let {username, password} = (Object.keys(req.query).length === 0) ? req.body : req.query; 
         let reasons =  User.failedLoginReasons;
 

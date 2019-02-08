@@ -1,0 +1,16 @@
+language: node_js
+node_js:
+- 11.3.0
+services:
+- mongodb
+install:
+- npm install
+- chmod +x node_modules/.bin/*
+deploy:
+  provider: heroku
+  api_key: e398073c-2c81-4984-9b18-aaa2d6d8e844
+  app: metre-reader-server
+  on:
+    repo: BantuLab/WaterMetreReader
+after_failure:
+- find $HOME ! \( -type d \) -name node-dev -exec ls -lah {} \;
