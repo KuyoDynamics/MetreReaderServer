@@ -30,19 +30,20 @@ async function getUser(req, res, next) {
 
 //POST /api/users
 async function createUser(req, res, next){
-    let new_user = new User({
-        username: req.body.username,
-        password: req.body.password,
-        first_name: req.body.first_name,
-        last_name: req.body.last_name,
-        sex: req.body.sex,
-        date_of_birth: req.body.date_of_birth,
-        user_type: req.body.user_type,
-        user_permissions: req.body.user_permissions
-    });
+   
 
     const session = await User.startSession();
     try {
+        let new_user = new User({
+            username: req.body.username,
+            password: req.body.password,
+            first_name: req.body.first_name,
+            last_name: req.body.last_name,
+            sex: req.body.sex,
+            date_of_birth: req.body.date_of_birth,
+            user_type: req.body.user_type,
+            user_permissions: req.body.user_permissions
+        });
         session.startTransaction();
 
         const ops = { session };

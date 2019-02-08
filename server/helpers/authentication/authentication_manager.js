@@ -103,8 +103,8 @@ const {verify_token} = require('./jwt_auth_token_verifier');
 
 async function require_authentication(req, res, next) {
     try {
-        let skip = await auth_skip_path_matcher(req.path);
-        if( skip === true){
+        let skip = auth_skip_path_matcher(req.path);
+        if(skip){
             return next();
         }
         else {

@@ -6,11 +6,15 @@
 let skip_path_patterns = require('./auth_skip_paths_config');
 
 function skipRequestPathMatcher(req_path) {
+    let skipped = false;
     for(let i = 0;i<skip_path_patterns.length;i++){
-        let skipped = skip_path_patterns[i].test(req_path);
-        if(skipped === true) return true;
+         skipped = skip_path_patterns[i].test(req_path);
+        if(skipped) {
+            break;
+        }
     }
-    return false;
+    console.log('Auth Skipped : ', skipped);
+    return skipped;
 }
 
 module.exports = skipRequestPathMatcher
