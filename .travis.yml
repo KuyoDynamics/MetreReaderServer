@@ -8,7 +8,8 @@ install:
 - chmod +x node_modules/.bin/*
 deploy:
   provider: heroku
-  api_key: e398073c-2c81-4984-9b18-aaa2d6d8e844
+  api_key:
+    secure: pxkZ6GXaxioy4+dSCxr+vqMl8aO0jSmYrXUQav+W9N6wfzoE9hDi8fkLyfQUwsx/ikjf0uBefPGz1u5grSeJuoyNVjti/1usUPzS2Mk/EnP6G1mlCwvwUltQ7aY6+JQfK/tBVUVOPVWVvI46I9m672/qlmBgWkFHZVu+x1jeyCfH/rBNVTX08mROtSVsX3ih5qBS60dRbNUa8uSKlF9dGYjZzfEOs+6P6NU06JK4NhCWNjdoMgG7G09wnX5nYhdM+HSHqPkiFa13yVCIw0aIO1b9VwPFLTCihuDgXI0XoUbgh0p5sbdxLvyKS5IMwaIfbMjQFoshiDZ+TJXcqNsduFy/YIxuts9GSQuLHuF+z/Hix2ukbuaWLhNPjvotoOTBXOQK9uOOJG7wq99tcctapxj8POPvABgJCW19E7/XZYH1hk7B9Y3st6Q7O6Gg4hh6qc4IPU17rpT6RbfNakM9jHE6rYPqy9THe9Mhfjaad5acf9xh1FZyumSF9qM7+QAWpHe/YKbet97ja/SEVG8dI25TaLqxnWYkcq0tgN+nzf/JMzew05LDoZrTWutujUoOPHr2IQXU8na1LBD/pX3+5yyAfBucfqTbnYEr9JnRJj4XfZ2wLXbKaWP3NW0VqBkaQHwe3RJu3HGQPW8Fjz1Y6Lwsc/tdfmeBJp8VcVZ3fyc=
   app: metre-reader-server
   on:
     repo: BantuLab/WaterMetreReader
