@@ -27,24 +27,6 @@ app.use('*', function(req, res, next){
 });
 app.all('*/api*', require_authentication);
 
-// function(req,res, next){
-//     //Check if connected to the db
-//     console.log('Mongoose connection readyState:', mongoose.connection.readyState);
-//     if(mongoose.connection.readyState === 0){
-// 		res.status(503).send('Database connection not available').end();
-// 	}
-// 	let skip = skipPathMatcher(req.path);
-// 	console.log('The req path: ', req.path);
-// 	console.log('skipPathMatcher(req.path): ', skip);
-
-// 	//skip configured routes
-// 	if(skip === true){
-// 		console.log('This request path will be skipped: ', req.path);
-// 	}
-  
-// 	next();
-// });
-
 //Laod routes
 require('../app/app.router')(app);
 
