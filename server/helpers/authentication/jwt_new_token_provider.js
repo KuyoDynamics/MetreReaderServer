@@ -13,10 +13,11 @@ async function jwt_new_token_provider(req, res, next) {
             user_type: user.user_type,
             scope: user.user_permissions,
         };
+        
         let signing_options = {
             issuer: API_TOKEN_ISSUER,
             audience: req.hostname,
-            algorithm: 'HS256',
+            algorithm: API_TOKEN_ALGORITHM,
             expiresIn: API_TOKEN_EXPIRES_IN          
         };
 

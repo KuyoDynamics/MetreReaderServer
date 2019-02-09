@@ -1,8 +1,3 @@
-/**
- * Is used to extract Authorization token from header.
- * You can extend TokenExtractor interface and provide your custom implementation that will
- * extract token from URL
- */
 
  function extract_token(req) {
     const bearerHeader = req.headers['authorization'];
@@ -13,6 +8,20 @@
     }
     return null;
  }
+
+ function extract_credentials(req){
+     const bearerHeader = req.headers['authorization'];
+     if(bearerHeader && bearerHeader.split(' ')[0] === 'Basic'){
+         let auth = bearerHeader.split(' ')[1];
+         let buf = new Buffer(auth, 'base64');
+         let plain_auth = buf.toString();
+         let username = plain_auth.split(':')[0];
+         let password = plain_auth.split(':')[1];
+         return {username, password};
+     }
+     return null;
+ }
  module.exports = {
-     extract_token
+     extract_token,
+     extract_credentials
  }

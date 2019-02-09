@@ -109,27 +109,17 @@ async function require_authentication(req, res, next) {
         }
         else {
             let token = extract_token(req);
-
             if(token != null)
             {
-                //1. Call method to check if token is expired/invalid
-                console.log('Token is not null!');
                 let verified_token = await verify_token(req, token) ;
-                console.log('Verified token: '+verified_token);
                 if(verified_token){
-                    // function set(object, path, value) {
-                    //     return object == null ? object : baseSet(object, path, value)
-                    //   }
                     req.user = verified_token;
-                    console.log('req.user = ', req.user);
                     next();
                 }
                 else{
                     res.status(403);
                     throw new Error('Access forbiden');
                 }
-                //2. Call method to verify token signature
-                //3. Then call next middleware
             } else{
                 res.status(403);
                 throw new Error('Access forbiden');

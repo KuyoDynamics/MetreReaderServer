@@ -3,14 +3,10 @@ let User =  require('../models/user.model');
 
 //GET /api/users/:id
 async function getUser(req, res, next) {
-    // try {
+    try {
         let user_id = req.params.id;
         const user =  await User.findById(user_id);
-        console.log('typeof user :', typeof user);
-        console.log('user :', user);
-        console.log('is there a user?:', !user);
         if(user === null){
-            // return next('user not found');
             res.status(404);
             next( new Error('user not found'));
         }
@@ -18,14 +14,10 @@ async function getUser(req, res, next) {
             res.status(200).send(user);
             return;
         }
-        // err.status = 404;
-        // err.message = 'user not found for id ' + user_id;
-        // return next(err);
-        
-    // } catch (error) {
-    //     console.log(error);
-    //     return next(error);        
-    // }
+    } catch (error) {
+        console.log(error);
+        return next(error);        
+    }
 };
 
 //POST /api/users

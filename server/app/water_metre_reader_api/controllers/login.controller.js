@@ -318,26 +318,35 @@ This is dummy class. You should ideally implement your own TokenVerifier to chec
  */
 /* #endregion */
 let User = require('../models/user.model');
+const {extract_credentials} = require('../../../helpers/authentication/jwt_auth_header_token_extractor');
 
-//POST /api/login?username="username"&password="password"
 async function login(req, res, next) {
     try {
-        
-        //You can also check if the request contains authorization header
-        //Refactor this username&password extraction logic into its separate method
-        //Method should return decoded password&username if encoded otherwise check
-        //if placed in params query or body.
-        //If not available in any of those places, just reject the request with
-        //invalid username or password error
-        let {username, password} = (Object.keys(req.query).length === 0) ? req.body : req.query; 
+        let credentials = extract_credentials(req);
+        let password;
+        let username;
+
+        if(!credentials){
+            let {params_username, params_password} = (Object.keys(req.query).length === 0) ? req.body : req.query; 
+            if(typeof user_name === 'undefined' && typeof pass_word === 'undefined'){
+                throw new Error('Username and password required!');
+            }
+            else{
+                username = params_username;
+                password = params_password;
+            }
+        }
+        else{
+            password = credentials.password;
+            username = credentials.username;
+        }
+
         let reasons =  User.failedLoginReasons;
 
         let user = await User.findOne({'username': username});
         
         if(user){
-            //check if the account is currently locked
             if(user.isLocked){
-                //just increment login attempts if account is already locked
                 user.incLoginAttempts(function(err) {
                     if(err){
                         console.log('Error incrementing login attempts: ', err);
@@ -345,11 +354,8 @@ async function login(req, res, next) {
                 });
                 throw new Error(reasons.MAX_ATTEMPTS);
             }
-            //test for a matching password
             let isMatch = await user.comparePassword(password, user.password);
-            console.log('isMatch: ', isMatch);
             if(!isMatch){
-                //password is incorrect, so throw new error and increment login
                 user.incLoginAttempts(function(err) {
                     if(err){
                         console.log('Error incrementing login attempts: ', err);
@@ -358,7 +364,6 @@ async function login(req, res, next) {
                 throw new Error(reasons.PASSWORD_INCORRECT);
             }
             if(isMatch){
-                //if there is no lock or failed attempts, just return the user
                 if(!user.login_attempts && !user.lock_until){
                     req.user = user; //send user for jwt signing/jwt_login_token_provider
                     return next();
@@ -370,7 +375,7 @@ async function login(req, res, next) {
                 };
 
                 let updated_user = await User.findOneAndUpdate({'_id': user._id}, updates,{"new": true});
-                req.user = updated_user; //send user for jwt signing
+                req.user = updated_user;
                 return next();
             }
         }
