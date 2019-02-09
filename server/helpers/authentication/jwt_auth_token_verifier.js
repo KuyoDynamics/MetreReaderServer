@@ -10,7 +10,7 @@ function verify_token(req, token) {
             issuer: API_TOKEN_ISSUER,
             audience: req.hostname,
             algorithm: [API_TOKEN_ALGORITHM],
-            expiresIn: '1h'  
+            expiresIn: API_TOKEN_EXPIRES_IN  
     }
     return new Promise( (resolve, reject)=>{
         let decoded = jwt.decode(token, {complete: true}) ;

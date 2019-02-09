@@ -17,7 +17,7 @@ async function jwt_new_token_provider(req, res, next) {
             issuer: API_TOKEN_ISSUER,
             audience: req.hostname,
             algorithm: 'HS256',
-            expiresIn: '1h'          
+            expiresIn: API_TOKEN_EXPIRES_IN          
         };
 
         let token = await jwt.sign(payload, API_SECRET, signing_options);
