@@ -100,7 +100,7 @@ db_connection.on('timeout', function(){
 mongoose.connect(process.env.MONGODB_URL, options);
 
 app.use(function(err,req,res,next){
-	console.log('[metrereaderserver] Error:', err.message + '\n Stack Trace: ' + err.stack());
+	console.log('[metrereaderserver] Error:', err.message + '\n Stack Trace: ' + err.stack);
 
 	res.json({
 		status: err.status === null ? 404 : err.status,
