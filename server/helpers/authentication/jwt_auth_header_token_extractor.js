@@ -11,9 +11,11 @@
 
  function extract_credentials(req){
      const bearerHeader = req.headers['authorization'];
+     console.log("Req.headers: " + req.headers);
+     console.log("Req.headers[authorization]: " + req.headers['authorization']);
      if(bearerHeader && bearerHeader.split(' ')[0] === 'Basic'){
          let auth = bearerHeader.split(' ')[1];
-         let buf = new Buffer(auth, 'base64');
+         let buf = new Buffer.from(auth, 'base64');
          let plain_auth = buf.toString();
          let username = plain_auth.split(':')[0];
          let password = plain_auth.split(':')[1];

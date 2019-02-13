@@ -125,9 +125,9 @@ UserSchema.methods.incLoginAttempts = function(callback){
 };
 //expose enum on the model
 UserSchema.statics.failedLoginReasons = {
-    NOT_FOUND: 0,
-    PASSWORD_INCORRECT: 1,
-    MAX_ATTEMPTS: 2
+    NOT_FOUND: 'user not found',
+    PASSWORD_INCORRECT: 'incorrect password',
+    MAX_ATTEMPTS: 'maximum login attempts reached'
 }
 //Virtuals
 UserSchema.virtual('isLocked').get(function(){
