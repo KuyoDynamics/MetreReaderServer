@@ -1,5 +1,7 @@
 
 module.exports = function(app){
+    //Firebase Cloud Messaging API
+    app.use('/water/api/fcmtoken', require('./water_metre_reader_api/routes/firebase.cloud.messaging.router'));
     //Water Metre Reader API
     app.use('/water/api/users',require('./water_metre_reader_api/routes/user.router'));
     //get new token
