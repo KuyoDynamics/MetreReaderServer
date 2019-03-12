@@ -59,6 +59,9 @@ typings/
 .env
 .test.env
 
+# FCM KEYS
+config/
+
 # next.js build output
 .next
 
