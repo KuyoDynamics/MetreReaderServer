@@ -1,4 +1,4 @@
-let FcmToken = require('../models/firebase.cloud.messaging.token');
+let FcmToken = require('../models/fcm.token');
 
 async function addNewFcmToken(req, res, next) {
     const session = await User.startSession();
