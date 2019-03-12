@@ -51,7 +51,7 @@ console.log('FCM SERVICE ACCOUNT: ', process.env.FCM_SERVICE_ACCOUNT);
 
 let fcm_app = fcm_admin.initializeApp({
 	credential: fcm_admin.credential.cert(
-		process.env.NODE_ENV === 'TEST' ? fcm_service_account : json(process.env.FCM_SERVICE_ACCOUNT)
+		process.env.NODE_ENV === 'TEST' ? fcm_service_account : JSON.parse(process.env.FCM_SERVICE_ACCOUNT)
 		),
 	databaseURL: process.env.FCM_DATABASE_URL
 });
