@@ -8,8 +8,7 @@ const morgan = require('morgan');
 const cors = require('cors');
 let {require_authentication} = require('../helpers/authentication/authentication_manager');
 const fcm_admin = require('firebase-admin');
-const fcm_service_account = require('../config/water-meter-reader-a9db4-firebase-adminsdk-2mcki-e8a1ad48cb.json');
-
+let fcm_service_account;
 const strings = require('../helpers/strings');
 const app_name = require('../../package.json').name;
 
@@ -41,15 +40,19 @@ const options = {
 
 try{
 	if (process.env.NODE_ENV === 'TEST') {
+		fcm_service_account = require('../config/water-meter-reader-a9db4-firebase-adminsdk-2mcki-e8a1ad48cb.json');
 		var configFile = path.join(__dirname, '../config/.env');
 		dotenv.load({ path: configFile });
 	}
 } catch(error){
 	console.log(strings.error_messages.connection_error, error.message);
 }
+console.log('FCM SERVICE ACCOUNT: ', process.env.FCM_SERVICE_ACCOUNT);
 
 let fcm_app = fcm_admin.initializeApp({
-	credential: fcm_admin.credential.cert(fcm_service_account),
+	credential: fcm_admin.credential.cert(
+		process.env.NODE_ENV === 'TEST' ? fcm_service_account : process.env.FCM_SERVICE_ACCOUNT
+		),
 	databaseURL: process.env.FCM_DATABASE_URL
 });
 
