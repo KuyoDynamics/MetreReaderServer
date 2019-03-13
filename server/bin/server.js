@@ -47,16 +47,13 @@ try{
 } catch(error){
 	console.log(strings.error_messages.connection_error, error.message);
 }
-console.log('FCM SERVICE ACCOUNT: ', process.env.FCM_SERVICE_ACCOUNT);
 
-let fcm_app = fcm_admin.initializeApp({
+fcm_admin.initializeApp({
 	credential: fcm_admin.credential.cert(
 		process.env.NODE_ENV === 'TEST' ? fcm_service_account : JSON.parse(process.env.FCM_SERVICE_ACCOUNT)
 		),
 	databaseURL: process.env.FCM_DATABASE_URL
 });
-
-console.log('FCM App Name: ', fcm_app.name);
 
 //send test message
 let fcm_device_registration_token = 'e_PjGlz6lxY:APA91bFSl5NmhEZG2ZgHD4rCiZzo4yQqgDk3-b_CL4Elf-2N3kqwU-LJC9qOmcCQmc_1_eHl9ymMvjAWvUbd7-f3mqFk9yaO0WHdl7eMILRDQTte9-WvF4zKPsQbpyBDGXlrr6olqE-E';
@@ -68,15 +65,7 @@ let fcm_message = {
 	},
 	token: fcm_device_registration_token
 }
-// Send a message to the device corresponding to the provided registration token.
-fcm_admin.messaging().send(fcm_message)
-	.then((response)=>{
-		//Response is message ID string
-		console.log('Successfully sent fcm message: ', response);
-	})
-	.catch((error)=>{
-		console.log('Error sending fcm message: ', error);
-	});
+
 
 
 var db_connection = mongoose.connection;
