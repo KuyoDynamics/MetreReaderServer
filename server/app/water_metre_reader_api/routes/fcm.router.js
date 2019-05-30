@@ -2,6 +2,6 @@ let controller = require('../controllers/fcm.controller');
 let router = require('express').Router();
 
 router.route('/')
-    .post(controller.addNewFcmToken);
+    .post(controller.registerNewFcmToken);
 
 module.exports = router;    

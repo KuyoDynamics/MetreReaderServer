@@ -140,5 +140,4 @@ let User = mongoose.model('User', UserSchema);
 User.init(function(User){
     mongoose.connection.createCollection('users');
 })
-
 module.exports = User;

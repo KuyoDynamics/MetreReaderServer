@@ -1,12 +1,15 @@
 let FcmToken = require('../models/fcm.token');
-
-async function addNewFcmToken(req, res, next) {
-    const session = await User.startSession();
+let User = require('../models/user.model');
+async function registerNewFcmToken(req, res, next) {
+    let session;
     try {
+        session = await User.startSession();
         let fcm_token = new FcmToken({
             token: req.body.token,
             user_id: req.body.user_id
         });
+        session.startTransaction();
+
         const ops = { session };
 
         await fcm_token.validate();
@@ -36,5 +39,5 @@ async function addNewFcmToken(req, res, next) {
 }
 
 module.exports = {
-    addNewFcmToken
+    registerNewFcmToken
 }
