@@ -13,10 +13,10 @@ function verify_token(req, token) {
             expiresIn: API_TOKEN_EXPIRES_IN  
     }
     return new Promise( (resolve, reject)=>{
-        let decoded = jwt.decode(token, {complete: true}) ;
-        console.log('Token Header: ', decoded.header);
-        console.log('Token Payload: ', decoded.payload);
         try {
+            let decoded = jwt.decode(token, {complete: true}) ;
+            console.log('Token Header: ', decoded.header);
+            console.log('Token Payload: ', decoded.payload);
             
             let result = jwt.verify(token, API_SECRET, verifyOptions);
             

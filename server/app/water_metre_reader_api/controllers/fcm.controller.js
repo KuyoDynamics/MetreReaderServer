@@ -29,10 +29,8 @@ async function registerNewFcmToken(req, res, next) {
     } catch (error) {
         await session.abortTransaction();
 		console.log('[metre_reader_server] Transaction aborted!');
-
 		session.endSession();
 		console.log('[metre_reader_server] Transaction ended!');
-        
 		res.status(422); //422 is Unprocessed Entity
 		return next(error);
     }    

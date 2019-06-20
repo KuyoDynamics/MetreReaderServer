@@ -1,4 +1,3 @@
-
 let User =  require('../models/user.model');
 
 //GET /api/users/:id
@@ -22,8 +21,6 @@ async function getUser(req, res, next) {
 
 //POST /api/users
 async function createUser(req, res, next){
-   
-
     const session = await User.startSession();
     try {
         let new_user = new User({
