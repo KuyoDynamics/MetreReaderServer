@@ -65,7 +65,6 @@ async function createUser(req, res, next){
 		res.status(422); //422 is Unprocessed Entity
 		return next(error);
     }
-
 }
 
 module.exports = {
