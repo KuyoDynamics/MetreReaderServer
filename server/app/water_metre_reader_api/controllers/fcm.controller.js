@@ -1,5 +1,24 @@
 let FcmToken = require('../models/fcm.token');
 let User = require('../models/user.model');
+
+//GET /api/fcmtoken/:id
+async function getFcmToken(req, res, next){
+    try {
+        let token_id = req.params.id;
+        const fcm_token = await FcmToken.findById(token_id);
+        if(fcm_token ===  null){
+            res.status(404);
+            next(new Error("Token not found"));
+        }
+        else{
+            res.status(200).send(fcm_token);
+            return;
+        }        
+    } catch (error) {
+        console.log(error);
+        return next(error);        
+    }
+}
 async function registerNewFcmToken(req, res, next) {
     let session;
     try {

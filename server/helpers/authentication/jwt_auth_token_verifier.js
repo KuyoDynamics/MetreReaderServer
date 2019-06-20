@@ -14,16 +14,9 @@ function verify_token(req, token) {
     }
     return new Promise( (resolve, reject)=>{
         try {
-            let decoded = jwt.decode(token, {complete: true}) ;
-            console.log('Token Header: ', decoded.header);
-            console.log('Token Payload: ', decoded.payload);
-            
             let result = jwt.verify(token, API_SECRET, verifyOptions);
-            
             resolve(result);
-    
         } catch (error) {
-            console.log('Verify options: ', verifyOptions);
             reject(error);
         }
     });
