@@ -19,6 +19,8 @@ async function getFcmToken(req, res, next){
         return next(error);        
     }
 }
+
+//POST /api/fcmtoken/
 async function registerNewFcmToken(req, res, next) {
     let session;
     try {

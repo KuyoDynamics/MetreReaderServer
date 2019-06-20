@@ -16,27 +16,23 @@ let FCMTokenSchema = new schema({
     }
 },{timestamps: true});
 
-//Pre-Save Hook
 FCMTokenSchema.pre('save', function(next){
     var  fcm_token = this;
-    var token_val = this.token.toString();
     if(!fcm_token.isModified){
         return next('token');
     }
     try {
-        fcm_token.token = text_encryption.encryptText(token_val);
+        fcm_token.token = text_encryption.encryptText(fcm_token.token);
         next();
     } catch (error) {
         console.log('Error encrypting token: ', error);
         next(error);        
     }
 });
-//Post-find Hook
+
 FCMTokenSchema.post('findOne', function(doc, next){
-    //Decrypt token
     try {
         doc.token = text_encryption.decryptText(doc.token);
-        console.log('Post find decrypted token: ', doc.token);
         next();        
     } catch (error) {
         console.log('Error Decrypting token: ', error);
