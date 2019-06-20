@@ -18,14 +18,13 @@ let FCMTokenSchema = new schema({
 
 //Pre-Save Hook
 FCMTokenSchema.pre('save', function(next){
-    let token = this;
-    //Only encrypt the token if it has been modified
-    if(!token.isModified){
+    var  fcm_token = this;
+    var token_val = this.token.toString();
+    if(!fcm_token.isModified){
         return next('token');
     }
-    //Do Not Hash Salt, just Encrypt! Hashing is good for passwords
     try {
-        token.token = text_encryption.encrypt(token.token);
+        fcm_token.token = text_encryption.encryptText(token_val);
         next();
     } catch (error) {
         console.log('Error encrypting token: ', error);
@@ -33,10 +32,11 @@ FCMTokenSchema.pre('save', function(next){
     }
 });
 //Post-find Hook
-FCMTokenSchema.post('find', function(token){
+FCMTokenSchema.post('findOne', function(doc, next){
     //Decrypt token
     try {
-        this.token = text_encryption.decrypt(this.token);
+        doc.token = text_encryption.decryptText(doc.token);
+        console.log('Post find decrypted token: ', doc.token);
         next();        
     } catch (error) {
         console.log('Error Decrypting token: ', error);

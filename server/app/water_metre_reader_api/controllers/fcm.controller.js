@@ -56,5 +56,6 @@ async function registerNewFcmToken(req, res, next) {
 }
 
 module.exports = {
-    registerNewFcmToken
+    registerNewFcmToken,
+    getFcmToken
 }
