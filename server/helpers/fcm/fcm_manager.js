@@ -21,10 +21,13 @@ function fcmInit(){
     });
 }
 
-function subscribeToTopic(registrationTokens, topic){
+function subscribeToTopics(registrationTokens, topics){
     return new Promise(async (resolve, reject)=>{
         try {
-            let response = await fcm_admin.messaging().subscribeToTopic(registrationTokens, topic);
+            let response = [];
+            topics.forEach((topic)=>{
+                response.push(await fcm_admin.messaging().subscribeToTopic(registrationTokens, topic));
+            })
             resolve(response);
         } catch (error) {
             reject(error);            
@@ -32,19 +35,80 @@ function subscribeToTopic(registrationTokens, topic){
     });
 }
 
-//send test message
-// let fcm_device_registration_token = 'e_PjGlz6lxY:APA91bFSl5NmhEZG2ZgHD4rCiZzo4yQqgDk3-b_CL4Elf-2N3kqwU-LJC9qOmcCQmc_1_eHl9ymMvjAWvUbd7-f3mqFk9yaO0WHdl7eMILRDQTte9-WvF4zKPsQbpyBDGXlrr6olqE-E';
+function unsubscribeFromTopic(registrationTokens, topic){
+    return new Promise(async(resolve, reject)=>{
+        try {
+            let response = await fcm_admin.messaging().unsubscribeFromTopic(registrationTokens, topic);
+            resolve(response);
+        } catch (error) {
+            reject(error);            
+        }
+    });
+}
 
-// let fcm_message = {
-// 	data: {
-// 		user_id: 'test_id-12345',
-// 		dirty_endpoints:'user,account,readings'
-// 	},
-// 	token: fcm_device_registration_token
-// }
+function sendMessageToSingleDevice(data, token){
+    let message = {
+        data: data,
+        token: token
+    };
+    return new Promise(async(resolve, reject)=>{
+        try {
+            let response = await fcm_admin.messaging().send(message);
+            resolve(response);            
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
+function sendMessageToMultipleDevices(data, tokens){
+    let message = {
+        data: data,
+        tokens: tokens
+    };
+    return new Promise(async(resolve, reject)=>{
+        try {
+            let response = await fcm_admin.messaging().sendMulticast(message);
+            console.log(response.successCount + ' messages were sent successfully');
+            if (response.failureCount > 0) {
+                const failedTokens = [];
+                response.responses.forEach((resp, idx) => {
+                  if (!resp.success) {
+                    failedTokens.push(tokens[idx]);
+                  }
+                });
+                console.log('List of tokens that caused failures: ' + failedTokens);
+              }
+            resolve(response);            
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
+function sendMessageToSingleTopic(data, topic){
+    let message = {
+        data: data,
+        topic: topic
+    };
+    return new Promise(async(resolve, reject)=>{
+        try {
+            let response = await fcm_admin.messaging().send(message);
+            console.log(' messages were sent successfully to '+response + 'topic');
+            resolve(response);            
+        } catch (error) {
+            reject(error);
+        }
+    });
+}
+
 module.exports = {
     fcmInit,
-    subscribeToTopic
+    subscribeToTopics,
+    unsubscribeFromTopic,
+    sendMessageToSingleDevice,
+    sendMessageToMultipleDevices,
+    sendMessageToSingleTopic
 }
 
 
