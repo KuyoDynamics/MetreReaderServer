@@ -1,4 +1,3 @@
-
  function extract_token(req) {
     const bearerHeader = req.headers['authorization'];
     if(bearerHeader && bearerHeader.split(' ')[0] === 'Bearer'){

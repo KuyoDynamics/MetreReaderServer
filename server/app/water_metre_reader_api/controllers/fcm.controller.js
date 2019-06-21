@@ -35,10 +35,11 @@ async function registerNewFcmToken(req, res, next) {
 
         await fcm_token.validate();
         console.log('[metre_reader_server] Fcm token data fields for ', fcm_token._id, ' successfully passed validation!');
-
+        //1. Save token to DB
         const result = await fcm_token.save(ops);
         console.log('[metre_reader_server] New Fcm token with id: ', fcm_token._id, ' was successfully created!');
-
+        //2. Subscribe to fcm user's group
+        
         await session.commitTransaction();
         session.endSession();
 
