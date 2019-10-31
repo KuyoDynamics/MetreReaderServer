@@ -1,17 +1,3 @@
-/**
- * The objectives of the username/password authentication implementation:
- * 1. The User model should fully encapsulate the password encryption and verification logic
- * 2. The User model should ensure that the password is always encrypted before saving
- * 3. The User model should be resistant to program logic errors, like double-encrypting 
- * the password on user updates. bcrypt interactions should be performed asynchronously 
- * to avoid blocking the event loop(bcrypt also exposes a synchronous API)
- * 
- * There are a couple things to be aware of though: Because passwords are not hashed until 
- * the document is saved, be careful if you’re interacting with documents that were not 
- * retrieved from the database, as any passwords will still be in cleartext. 
- * Mongoose middleware is not invoked on update() operations, so you must use a save()
- * if you want to update user passwords. 
- */
 let mongoose = require('mongoose');
 let bcrypt = require('bcrypt');
 let SALT_WORK_FACTOR = 10;
@@ -22,7 +8,6 @@ const LOCK_TIME = 2*60*60*1000;
 let Schema = mongoose.Schema;
 let UserTypeOptions = ['field_agent','system_admin','report_viewer'];
 let SexTypeOptions = ['male','female','unknown'];
-let UserPermissions = ['read:users','create:users','update:users','delete:users','read:metre_accounts'];
 
 let UserSchema = new Schema({
     username: {
@@ -59,7 +44,7 @@ let UserSchema = new Schema({
     },
     user_permissions: [{
         type: String,
-        enum: UserPermissions
+        required: true
     }],
     login_attempts: {
         type: Number,
@@ -68,7 +53,11 @@ let UserSchema = new Schema({
     } ,
     lock_until: {
         type: Number
-    }
+    },
+    fcm_tokens: [{
+        type: String,
+        unique: true
+    }]
 }, {timestamps: true});
 
 //Pre Save Hook
@@ -94,6 +83,33 @@ UserSchema.pre('save', function(next) {
         })
     })
 });
+
+UserSchema.post('findOne', function(doc, next){
+    try {
+        let fcm_tokens = doc.fcm_tokens;
+        fcm_tokens.forEach((token, index)=>{
+            doc.fcm_tokens[index] = text_encryption.decryptText(token);
+        });
+        next();        
+    } catch (error) {
+        console.log('Error Decrypting token: ', error);
+        next(error);    
+    }
+});
+
+UserSchema.post('find', function(doc, next){
+    try {
+        let fcm_tokens = doc.fcm_tokens;
+        fcm_tokens.forEach((token, index)=>{
+            doc.fcm_tokens[index] = text_encryption.decryptText(token);
+        });
+        next();        
+    } catch (error) {
+        console.log('Error Decrypting token: ', error);
+        next(error);    
+    }
+});
+
 //Add Password Verification Middleware
 UserSchema.methods.comparePassword =  function(candidatePassword, userPassword){
     return new Promise(function(resolve, reject){

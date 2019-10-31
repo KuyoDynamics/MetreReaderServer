@@ -1,17 +1,16 @@
-let FcmToken = require('../models/fcm.token');
 let User = require('../models/user.model');
 
 //GET /api/fcmtoken/:id
-async function getFcmToken(req, res, next){
+async function getFcmTokens(req, res, next){
     try {
-        let token_id = req.params.id;
-        const fcm_token = await FcmToken.findById(token_id);
-        if(fcm_token ===  null){
+        let user_id = req.params.id;
+        const user = await User.findById(user_id);
+        if(user ===  null){
             res.status(404);
-            next(new Error("Token not found"));
+            next(new Error("User not found"));
         }
         else{
-            res.status(200).send(fcm_token);
+            res.status(200).send(user.fcm_tokens);
             return;
         }        
     } catch (error) {
@@ -22,24 +21,28 @@ async function getFcmToken(req, res, next){
 
 //POST /api/fcmtoken/
 async function registerNewFcmToken(req, res, next) {
-    let session;
+    let session = null;
+    UserSchema.pre('save', function(next){
+        var  fcm_token = this;
+        if(!fcm_token.isModified){
+            return next('token');
+        }
+        try {
+            fcm_token.token = text_encryption.encryptText(fcm_token.token);
+            next();
+        } catch (error) {
+            console.log('Error encrypting token: ', error);
+            next(error);        
+        }
+    });
     try {
-        session = await User.startSession();
-        let fcm_token = new FcmToken({
-            token: req.body.token,
-            user_id: req.body.user_id
-        });
+        session = User.db.startSession();
         session.startTransaction();
 
         const ops = { session };
-
-        await fcm_token.validate();
-        console.log('[metre_reader_server] Fcm token data fields for ', fcm_token._id, ' successfully passed validation!');
         //1. Save token to DB
-        const result = await fcm_token.save(ops);
-        console.log('[metre_reader_server] New Fcm token with id: ', fcm_token._id, ' was successfully created!');
-        //2. Subscribe to fcm user's group
-        
+        const result = await User.findOneAndUpdate({_id: req.body.user_id}, {$addToSet: {fcm_tokens: req.body.token}},ops);
+        console.log('[metre_reader_server] New Fcm token with id: ', result.fcm_tokens[req.body.token], ' was successfully created!');
         await session.commitTransaction();
         session.endSession();
 

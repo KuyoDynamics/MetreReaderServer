@@ -64,6 +64,8 @@ async function createUser(req, res, next){
     }
 }
 
+//POST /api/users
+
 module.exports = {
     getUser,
     createUser

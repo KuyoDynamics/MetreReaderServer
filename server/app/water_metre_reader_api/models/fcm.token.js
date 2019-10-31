@@ -38,7 +38,7 @@ FCMTokenSchema.post('findOne', function(doc, next){
         console.log('Error Decrypting token: ', error);
         next(error);    
     }
-})
+});
 
 let FcmToken = mongoose.model("FcmToken", FCMTokenSchema);
 
